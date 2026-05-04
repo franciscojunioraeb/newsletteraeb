@@ -1,0 +1,43 @@
+name: Newsletter Orçamentária AEB
+
+on:
+  schedule:
+    # ─────────────────────────────────────────────────────────────
+    # Agendamentos (horário de Brasília = UTC-3)
+    # Adicione ou remova linhas conforme necessário.
+    # Formato: 'MINUTO HORA * * DIAS'
+    # Dias: 0=Dom 1=Seg 2=Ter 3=Qua 4=Qui 5=Sex 6=Sáb
+    # ─────────────────────────────────────────────────────────────
+    - cron: '30 10 * * 1-5'   # 07:30 BRT — dias úteis (principal)
+    # - cron: '0 15 * * 5'    # 12:00 BRT — sextas-feiras (opcional)
+    # - cron: '0 11 * * 1'    # 08:00 BRT — segundas-feiras (opcional)
+
+  # Permite disparar manualmente pela aba Actions no GitHub
+  workflow_dispatch:
+
+jobs:
+  enviar-newsletter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Clonar repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependências
+        run: pip install anthropic sendgrid
+
+      - name: Gerar e enviar newsletter
+        run: python newsletter.py
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SENDGRID_API_KEY:  ${{ secrets.SENDGRID_API_KEY }}
+          RECIPIENTS:        ${{ secrets.RECIPIENTS }}
+          FROM_EMAIL:        ${{ secrets.FROM_EMAIL }}
+          FROM_NAME:         "Boletim Orçamentário AEB"
+          TOPICS:            "LOA,LDO,PPA"
